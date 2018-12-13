@@ -1,64 +1,21 @@
 import * as React from 'react';
-import { connect, Dispatch } from 'react-redux';
 import Alternativ from '../../../komponenter/skjema/alternativ';
 import { InjectedIntlProps, injectIntl } from 'react-intl';
 import { getIntlTekstForSporsmal, getTekstIdForSvar } from '../../../komponenter/skjema/skjema-utils';
 import { Innholdstittel } from 'nav-frontend-typografi';
-import {
-    annenStilling,
-    ingenYrkesbakgrunn, selectSisteStilling, selectSisteStillingBruker,
-    Stilling, tomStilling, velgSisteStillingSystem
-} from '../../../ducks/siste-stilling';
-import { AppState } from '../../../reducer';
-import {
-    situasjonerDerViVetAtBrukerenHarHattJobb
-} from './sporsmal-siste-stilling/siste-stilling-utils';
 import { DinSituasjonSvar, Svar } from '../../../ducks/svar-utils';
 import { SporsmalProps } from '../../../komponenter/skjema/sporsmal-utils';
 
-interface DispatchProps {
-    velgStillingSystem: (stilling: Stilling) => void;
-}
-
-interface StateProps {
-    defaultStilling: Stilling;
-    sisteStilling: Stilling;
-    sisteStillingBruker: Stilling;
-}
-
-type Props = SporsmalProps & InjectedIntlProps & DispatchProps & StateProps;
+type Props = SporsmalProps & InjectedIntlProps;
 
 class SporsmalDinSituasjon extends React.Component<Props> {
 
-    velgStillingHvisDenIkkeAlleredeErValgt(stilling: Stilling) {
-        const {sisteStilling, velgStillingSystem} = this.props;
-        if (sisteStilling.label !== stilling.label) {
-            velgStillingSystem(stilling);
-        }
-    }
-
     render() {
-        const {endreSvar, hentAvgittSvar, sporsmalId, intl, 
-            velgStillingSystem, sisteStillingBruker, defaultStilling} = this.props;
+        const {endreSvar, hentAvgittSvar, sporsmalId, intl} = this.props;
         const fellesProps = {
             intl: intl,
             avgiSvar: (svar: DinSituasjonSvar) => {
                 endreSvar(sporsmalId, svar);
-                if (svar === DinSituasjonSvar.ALDRI_HATT_JOBB) {
-                    velgStillingSystem(ingenYrkesbakgrunn);
-                } else {
-                    // TODO FO-1464 Skriv test for dette.
-                    if ((defaultStilling === ingenYrkesbakgrunn)
-                        && situasjonerDerViVetAtBrukerenHarHattJobb.includes(svar)) {
-                        this.velgStillingHvisDenIkkeAlleredeErValgt(annenStilling);
-                    }  else {
-                        // tslint:disable
-                        console.log('sisteStillingBruker', sisteStillingBruker);
-                        if (sisteStillingBruker === tomStilling) {
-                            this.velgStillingHvisDenIkkeAlleredeErValgt(defaultStilling);
-                        }
-                    }
-                }
             },
             getTekstId: (svar: Svar) => getTekstIdForSvar(sporsmalId, svar),
             hentAvgittSvar: () => hentAvgittSvar(sporsmalId),
@@ -90,14 +47,4 @@ class SporsmalDinSituasjon extends React.Component<Props> {
     }
 }
 
-const mapStateToProps = (state: AppState): StateProps => ({
-    defaultStilling: state.defaultStilling.stilling,
-    sisteStilling: selectSisteStilling(state),
-    sisteStillingBruker: selectSisteStillingBruker(state),
-});
-
-const mapDispatchToProps = (dispatch: Dispatch<AppState>): DispatchProps => ({
-    velgStillingSystem: (stilling: Stilling) => dispatch(velgSisteStillingSystem(stilling)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(injectIntl(SporsmalDinSituasjon));
+export default injectIntl(SporsmalDinSituasjon);

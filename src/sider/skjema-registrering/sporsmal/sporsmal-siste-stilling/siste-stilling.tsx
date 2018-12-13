@@ -20,9 +20,13 @@ import {
     Stilling,
     velgSisteStilling
 } from '../../../../ducks/siste-stilling';
-import { getIntlTekstForSporsmal, getTekstIdForSvar, TekstKontekst } from '../../../../komponenter/skjema/skjema-utils';
+import {
+    getIntlTekstForSporsmal, getTekstIdForSvar, TekstKontekst
+} from '../../../../komponenter/skjema/skjema-utils';
 import Alternativ from '../../../../komponenter/skjema/alternativ';
-import { getDefaultSvar, hentOversattStillingFraAAReg, skalSkjuleSvaralternativer } from './siste-stilling-utils';
+import {
+    hentOversattStillingFraAAReg, skalSkjuleSvaralternativer
+} from './siste-stilling-utils';
 import { DinSituasjonSvar, hentSvar, SisteStillingSvar, Svar } from '../../../../ducks/svar-utils';
 import { SporsmalId, State as SvarState } from '../../../../ducks/svar';
 import { SporsmalProps } from '../../../../komponenter/skjema/sporsmal-utils';
@@ -38,7 +42,6 @@ interface StateProps {
     oversettelseAvStillingFraAAReg: OversettelseAvStillingFraAARegState;
     labelTilStillingFraAAReg: string;
     sisteStilling: Stilling;
-    defaultStilling: Stilling;
     svarState: SvarState;
     registreringType: RegistreringType;
 }
@@ -63,34 +66,8 @@ class SisteStilling extends React.Component<Props, SisteStillingState> {
         this.onStillingEndret = this.onStillingEndret.bind(this);
     }
 
-    componentWillMount() {
-        const {
-            endreSvar,
-            sporsmalId,
-            sisteStilling,
-            defaultStilling,
-            svarState
-        } = this.props;
-
-        if (skalSkjuleSvaralternativer(hentSvar(svarState, SporsmalId.dinSituasjon) as DinSituasjonSvar)) {
-            this.angiSvarPaaDetteSporsmaletSomIkkeBesvart();
-        } else {
-            endreSvar(
-                sporsmalId,
-                getDefaultSvar(sisteStilling, defaultStilling)
-            );
-        }
-    }
-
     skalViseStillingsfelt() {
         return (this.props.hentAvgittSvar(this.props.sporsmalId) !== SisteStillingSvar.HAR_IKKE_HATT_JOBB);
-    }
-
-    angiSvarPaaDetteSporsmaletSomIkkeBesvart() {
-        const {svarState, endreSvar, sporsmalId} = this.props;
-        if (hentSvar(svarState, SporsmalId.sisteStilling) !== SisteStillingSvar.INGEN_SVAR) {
-            endreSvar(sporsmalId, SisteStillingSvar.INGEN_SVAR);
-        }
     }
 
     onInputAktivert() {
@@ -130,24 +107,24 @@ class SisteStilling extends React.Component<Props, SisteStillingState> {
         );
 
         const alternativer = skjulSvaralternativer ? (null) : (
-                    <>
-                        <Alternativ
-                            svar={SisteStillingSvar.HAR_HATT_JOBB}
-                            {...alternativProps}
-                            avgiSvar={(svar: Svar) => {
-                                endreSvar(sporsmalId, svar);
-                                velgStilling(hentOversattStillingFraAAReg(oversettelseAvStillingFraAAReg.data));
-                            }}
-                        />
-                        <Alternativ
-                            svar={SisteStillingSvar.HAR_IKKE_HATT_JOBB}
-                            {...alternativProps}
-                            avgiSvar={(svar: Svar) => {
-                                endreSvar(sporsmalId, svar);
-                                velgStilling(ingenYrkesbakgrunn);
-                            }}
-                        />
-                    </>
+            <>
+                <Alternativ
+                    svar={SisteStillingSvar.HAR_HATT_JOBB}
+                    {...alternativProps}
+                    avgiSvar={(svar: Svar) => {
+                        endreSvar(sporsmalId, svar);
+                        velgStilling(hentOversattStillingFraAAReg(oversettelseAvStillingFraAAReg.data));
+                    }}
+                />
+                <Alternativ
+                    svar={SisteStillingSvar.HAR_IKKE_HATT_JOBB}
+                    {...alternativProps}
+                    avgiSvar={(svar: Svar) => {
+                        endreSvar(sporsmalId, svar);
+                        velgStilling(ingenYrkesbakgrunn);
+                    }}
+                />
+            </>
         );
 
         const getTekst = (kontekst: TekstKontekst) => getIntlTekstForSporsmal(sporsmalId,
@@ -155,9 +132,9 @@ class SisteStilling extends React.Component<Props, SisteStillingState> {
 
         const sokeInput = this.skalViseStillingsfelt() ?
             (this.state.erInputAktiv ?
-                <SokeInput defaultStilling={sisteStilling} onChange={this.onStillingEndret}/>
-                :
-                <InaktivSokeInput stilling={sisteStilling} onInputAktivert={this.onInputAktivert} />
+                    <SokeInput defaultStilling={sisteStilling} onChange={this.onStillingEndret}/>
+                    :
+                    <InaktivSokeInput stilling={sisteStilling} onInputAktivert={this.onInputAktivert} />
             )
             : null;
 
@@ -200,7 +177,6 @@ const mapStateToProps = (state) => ({
     oversettelseAvStillingFraAAReg: selectOversettelseAvStillingFraAAReg(state),
     labelTilStillingFraAAReg: selectSisteStillingNavnFraPam(state),
     sisteStilling: selectSisteStilling(state),
-    defaultStilling: state.defaultStilling.stilling,
     svarState: state.svar,
     registreringType: selectRegistreringstatus(state).data.registreringType
 });

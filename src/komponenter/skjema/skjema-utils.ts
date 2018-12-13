@@ -165,7 +165,7 @@ export function nullStillSporsmalSomIkkeSkalBesvares(sporsmalId: any, svar: any,
             });
         } else if (config.id === sporsmalId) {
             config.spmHoppOver.map((spmId) => {
-                resetSvar(spmId);
+                // resetSvar(spmId);
             });
         }
     });

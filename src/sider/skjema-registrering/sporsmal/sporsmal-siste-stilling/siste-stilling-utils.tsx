@@ -1,6 +1,7 @@
 import { annenStilling, ingenYrkesbakgrunn, Stilling } from '../../../../ducks/siste-stilling';
 import { Data as OversettelseAvStillingData } from '../../../../ducks/oversettelse-av-stilling-fra-aareg';
-import { DinSituasjonSvar, SisteStillingSvar } from '../../../../ducks/svar-utils';
+import { DinSituasjonSvar, hentSvar, SisteStillingSvar } from '../../../../ducks/svar-utils';
+import { SporsmalId } from '../../../../ducks/svar';
 
 export const UTEN_STYRKKODE = 'utenstyrkkode';
 
@@ -20,10 +21,9 @@ export function hentOversattStillingFraAAReg(
 }
 
 export function getDefaultSvar(
-    sisteStilling: Stilling,
-    defaultStilling: Stilling,
+    sisteStilling: Stilling
 ): SisteStillingSvar {
-    return (sisteStilling === ingenYrkesbakgrunn) && (defaultStilling === ingenYrkesbakgrunn)
+    return sisteStilling === ingenYrkesbakgrunn
         ? SisteStillingSvar.HAR_IKKE_HATT_JOBB
         : SisteStillingSvar.HAR_HATT_JOBB;
 }
@@ -41,3 +41,45 @@ export const situasjonerDerViVetAtBrukerenHarHattJobb: (DinSituasjonSvar | undef
 export function skalSkjuleSvaralternativer(dinSituasjon: DinSituasjonSvar | undefined) {
     return situasjonerDerViVetAtBrukerenHarHattJobb.includes(dinSituasjon);
 }
+
+const _velgStillingHvisDenIkkeAlleredeErValgt = (stilling: Stilling, sisteStilling, velgStilling) => {
+    if (sisteStilling.label !== stilling.label) {
+        velgStilling(stilling);
+    }
+};
+
+export const resetStillingSporsmal = (
+    svarState,
+    endreSvar,
+    sisteStilling,
+    defaultStilling,
+    velgStilling
+) => {
+
+    const svar = hentSvar(svarState, SporsmalId.dinSituasjon) as DinSituasjonSvar;
+
+    // Reset stilling
+    if (svar === DinSituasjonSvar.ALDRI_HATT_JOBB) {
+        velgStilling(ingenYrkesbakgrunn);
+    } else {
+        // TODO FO-1464 Skriv test for dette.
+        if ((defaultStilling === ingenYrkesbakgrunn)
+            && situasjonerDerViVetAtBrukerenHarHattJobb.includes(svar)) {
+            _velgStillingHvisDenIkkeAlleredeErValgt(annenStilling, sisteStilling, velgStilling);
+        }  else {
+            _velgStillingHvisDenIkkeAlleredeErValgt(defaultStilling, sisteStilling, velgStilling);
+        }
+    }
+
+    // Reset svar
+    if (skalSkjuleSvaralternativer(svar)) {
+        if (hentSvar(svarState, SporsmalId.sisteStilling) !== SisteStillingSvar.INGEN_SVAR) {
+            endreSvar(SporsmalId.sisteStilling, SisteStillingSvar.INGEN_SVAR);
+        }
+    } else {
+        endreSvar(
+            SporsmalId.sisteStilling,
+            getDefaultSvar(sisteStilling)
+        );
+    }
+};
