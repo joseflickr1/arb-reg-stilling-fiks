@@ -1,0 +1,47 @@
+@import '../../../node_modules/nav-frontend-core/less/_variabler';
+@import '../../setup';
+
+.tilbakelenke {
+    display: inline-block;
+    position: absolute;
+    top: 3rem;
+    left: ~'calc(50% - 25px)';
+    background: none;
+    cursor: pointer;
+    border-bottom: 1px solid @navGra40;
+    text-decoration: none;
+    color: @navMorkGra;
+
+    &:hover {
+        border-bottom-color: @navMorkGra;
+    }
+
+    &:focus {
+        outline: none;
+        background: @orangeFocus;
+    }
+
+    &:before {
+        .pil-mixin(@navMorkGra, 225deg);
+        position: absolute;
+        margin-top: -16px;
+        left: ~'calc(50% - 6px)';
+    }
+
+    .gjemt {
+        .gjemt-mixin();
+    }
+}
+
+@media (min-width: @screen-sm-min) {
+    .tilbakelenke {
+        top: 2rem;
+        left: 44px;
+
+        &:before {
+            .pil-mixin(@navMorkGra, 135deg);
+            margin-top: 7px;
+            left: -13px;
+        }
+    }
+}
